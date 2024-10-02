@@ -9,11 +9,11 @@ _I will try, with your help, to have this integration working as long as I can._
 
 #### Install
 
-- Install it with HACS by adding (https://github.com/DominikWrobel/home-assistant-vacuum-styj02ym) as a custom repository
+- Install it with HACS by adding (https://github.com/DominikWrobel/viomise) as a custom repository
 
 #### Usage
 
-Find Xiaomi miio vacuum STYJ02YM in integrations page:
+Find Viomi SE in integrations page:
 
 ![setup](https://github.com/user-attachments/assets/f93df4df-1c82-4dca-8584-05c314d4bccf)
 
