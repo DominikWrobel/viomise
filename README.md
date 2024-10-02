@@ -15,7 +15,7 @@ _I will try, with your help, to have this integration working as long as I can._
 
 Find Viomi SE in integrations page:
 
-![setup](https://github.com/user-attachments/assets/f93df4df-1c82-4dca-8584-05c314d4bccf)
+![setup](https://github.com/user-attachments/assets/80a382fb-5a55-49da-a05c-9a31db1f7c8a)
 
 Note: Vacuum token can be extracted by following [this guide](https://www.home-assistant.io/integrations/xiaomi_miio/#retrieving-the-access-token). I recommend using the python script method to extract the token as it is simpler, and only requires you to enter your Xiaomi Cloud username and password. These are the credentials used for the Xiaomi Home app (not ones from Viomi Robot app).
 
