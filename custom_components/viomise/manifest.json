@@ -4,12 +4,12 @@
   "codeowners": ["@nqkdev", "@KrzysztofHajdamowicz", "@DominikWrobel"],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/DominikWrobel/home-assistant-vacuum-styj02ym",
+  "documentation": "https://github.com/DominikWrobel/viomise",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/DominikWrobel/home-assistant-vacuum-styj02ym/issues",
+  "issue_tracker": "https://github.com/DominikWrobel/viomise/issues",
   "requirements": [
     "construct==2.10.70",
     "python-miio==0.5.12"
   ],
-  "version": "2024.10.5"
+  "version": "1.1"
 }
