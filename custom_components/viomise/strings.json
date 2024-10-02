@@ -1,0 +1,22 @@
+{
+    "config": {
+      "step": {
+        "user": {
+          "data": {
+            "host": "Host",
+            "name": "Name",
+            "token": "API Token"
+          },
+          "description": "You will need the IP address and API token of your Viomi SE vacuum.",
+          "title": "Connect to Viomi SE"
+        }
+      },
+      "error": {
+        "cannot_connect": "Cannot connect",
+        "unknown": "Unknown error"
+      },
+      "abort": {
+        "already_configured": "Already configured"
+      }
+    }
+  }
