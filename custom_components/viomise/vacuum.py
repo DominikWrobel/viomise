@@ -8,7 +8,6 @@ import voluptuous as vol
 
 from homeassistant.components.vacuum import (
     ATTR_CLEANED_AREA,
-    DOMAIN,
     PLATFORM_SCHEMA,
     STATE_CLEANING,
     STATE_DOCKED,
@@ -27,6 +26,7 @@ from homeassistant.components.vacuum import (
     SUPPORT_STOP,
     StateVacuumEntity,
     VacuumEntityFeature,
+    DOMAIN as VACUUM_DOMAIN,
 )
 from homeassistant.const import (
     ATTR_ENTITY_ID,
@@ -36,6 +36,8 @@ from homeassistant.const import (
     STATE_OFF,
     STATE_ON,
 )
+
+from .const import DOMAIN, DATA_KEY
 
 from homeassistant.helpers import entity
 
@@ -199,20 +201,16 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     
     async_add_entities([mirobo], update_before_add=True)
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
-    """Set up the Xiaomi vacuum cleaner robot platform."""
-    if DATA_KEY not in hass.data:
-        hass.data[DATA_KEY] = {}
+async def async_setup_entry(hass, config_entry, async_add_entities):
+    """Set up the Xiaomi vacuum platform from config entry."""
+    host = config_entry.data[CONF_HOST]
+    token = config_entry.data[CONF_TOKEN]
+    name = config_entry.data[CONF_NAME]
 
-    host = config[CONF_HOST]
-    token = config[CONF_TOKEN]
-    name = config[CONF_NAME]
-
-    # Create handler
-    _LOGGER.info("Initializing with host %s (token %s...)", host, token[:5])
     vacuum = ViomiVacuum(host, token)
-
     mirobo = MiroboVacuum2(name, vacuum)
+    
+    hass.data.setdefault(DATA_KEY, {})
     hass.data[DATA_KEY][host] = mirobo
 
     async_add_entities([mirobo], update_before_add=True)
@@ -220,38 +218,49 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     async def async_service_handler(service):
         """Map services to methods on MiroboVacuum."""
         method = SERVICE_TO_METHOD.get(service.service)
+        if not method:
+            _LOGGER.error(f"Service {service.service} was called but is not registered")
+            return
+
         params = {
-            key: value for key,
-            value in service.data.items() if key != ATTR_ENTITY_ID}
+            key: value for key, value in service.data.items() if key != ATTR_ENTITY_ID
+        }
         entity_ids = service.data.get(ATTR_ENTITY_ID)
 
+        target_vacuums = []
         if entity_ids:
             target_vacuums = [
-                vac
-                for vac in hass.data[DATA_KEY].values()
+                vac for vac in hass.data[DATA_KEY].values()
                 if vac.entity_id in entity_ids
             ]
         else:
-            target_vacuums = hass.data[DATA_KEY].values()
+            target_vacuums = list(hass.data[DATA_KEY].values())
 
         update_tasks = []
         for vacuum in target_vacuums:
-            await getattr(vacuum, method["method"])(**params)
+            try:
+                await getattr(vacuum, method["method"])(**params)
+            except AttributeError as err:
+                _LOGGER.error("Method %s not found in vacuum: %s", method["method"], err)
+                continue
 
         for vacuum in target_vacuums:
-            update_coro = vacuum.async_update_ha_state(True)
-            update_tasks.append(asyncio.create_task(update_coro))
+            update_tasks.append(vacuum.async_update_ha_state(True))
 
         if update_tasks:
-            await asyncio.wait(update_tasks)
+            await asyncio.gather(*update_tasks)
 
+    # Register services
     for vacuum_service in SERVICE_TO_METHOD:
-        schema = SERVICE_TO_METHOD[vacuum_service].get(
-            "schema", VACUUM_SERVICE_SCHEMA)
+        schema = SERVICE_TO_METHOD[vacuum_service].get("schema", VACUUM_SERVICE_SCHEMA)
         hass.services.async_register(
-            DOMAIN, vacuum_service, async_service_handler, schema=schema
+            VACUUM_DOMAIN,  # Register under the vacuum domain
+            vacuum_service,
+            async_service_handler,
+            schema=schema,
         )
 
+    return True
 
 class MiroboVacuum2(StateVacuumEntity):
     """Representation of a Xiaomi Vacuum cleaner robot."""
@@ -548,3 +557,4 @@ class MiroboVacuum2(StateVacuumEntity):
         self._last_clean_point = point
         await self._try_command("Unable to clean point: %s", self._vacuum.raw_command, 'set_uploadmap', [0]) \
             and await self._try_command("Unable to clean point: %s", self._vacuum.raw_command, 'set_pointclean', [1, x, y])
+
