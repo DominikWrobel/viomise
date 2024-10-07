@@ -7,27 +7,17 @@ from miio import ViomiVacuum, DeviceException # pylint: disable=import-error
 import voluptuous as vol
 
 from homeassistant.components.vacuum import (
-    ATTR_CLEANED_AREA,
-    PLATFORM_SCHEMA,
     STATE_CLEANING,
     STATE_DOCKED,
     STATE_ERROR,
     STATE_IDLE,
     STATE_PAUSED,
     STATE_RETURNING,
-    SUPPORT_BATTERY,
-    SUPPORT_FAN_SPEED,
-    SUPPORT_LOCATE,
-    SUPPORT_PAUSE,
-    SUPPORT_RETURN_HOME,
-    SUPPORT_SEND_COMMAND,
-    SUPPORT_START,
-    SUPPORT_STATE,
-    SUPPORT_STOP,
     StateVacuumEntity,
     VacuumEntityFeature,
     DOMAIN as VACUUM_DOMAIN,
 )
+
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     CONF_HOST,
@@ -35,13 +25,15 @@ from homeassistant.const import (
     CONF_TOKEN,
     STATE_OFF,
     STATE_ON,
+    Platform,
 )
 
 from .const import DOMAIN, DATA_KEY
 
 from homeassistant.helpers import entity
+from homeassistant.helpers import config_validation as cv
 
-import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 
 _LOGGER = logging.getLogger(__name__)
 
