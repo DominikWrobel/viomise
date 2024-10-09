@@ -467,50 +467,55 @@ class MiroboVacuum2(StateVacuumEntity):
         """Fetch state from the device."""
         try:
             state = self._vacuum.raw_command('get_prop', ALL_PROPS)
-
+        
             self.vacuum_state = dict(zip(ALL_PROPS, state))
-
-            for prop in VACUUM_CARD_PROPS_REFERENCES.keys():
-                self.vacuum_state[prop] = self.vacuum_state[VACUUM_CARD_PROPS_REFERENCES[prop]]
-
+        
+            # Only update references if both keys exist
+            for prop, ref in VACUUM_CARD_PROPS_REFERENCES.items():
+                if ref in self.vacuum_state:
+                    self.vacuum_state[prop] = self.vacuum_state[ref]
+        
             self._available = True
 
-            # Current state of the vacuum
-            # 2: mop only, 1: dust&mop, 0: only vacuum
-            current_mode = int(self.vacuum_state['is_mop'])
+            # Make sure we have all required values before proceeding
+            if all(key in self.vacuum_state for key in ['is_mop', 'box_type', 'mop_type']):
+                # Current state of the vacuum
+                # 2: mop only, 1: dust&mop, 0: only vacuum
+                current_mode = int(self.vacuum_state['is_mop'])
 
-            # 3: 2 in 1, 2: water only, 1: dust only, 0: no box
-            box_type = int(self.vacuum_state['box_type'])
+                # 3: 2 in 1, 2: water only, 1: dust only, 0: no box
+                box_type = int(self.vacuum_state['box_type'])
 
-            # True: has the mop attachment, False: no attachment
-            has_mop = bool(self.vacuum_state['mop_type'])
+                # True: has the mop attachment, False: no attachment
+                has_mop = bool(self.vacuum_state['mop_type'])
 
-            # Automatically set mop based on box_type
-            new_mode = None
+                # Automatically set mop based on box_type
+                new_mode = None
 
-            if box_type == 3:
-                # 2 in 1 box
-                if has_mop:
-                    # Vacuum and mop if we have the attachment
-                    new_mode = 1
-                else:
-                    # Just vacuum if we have no mop
+                if box_type == 3:
+                    # 2 in 1 box
+                    if has_mop:
+                        # Vacuum and mop if we have the attachment
+                        new_mode = 1
+                    else:
+                        # Just vacuum if we have no mop
+                        new_mode = 0
+                elif box_type == 2:
+                    # We only have water, so let's mop.
+                    new_mode = 2
+                elif box_type == 1:
+                    # We only have dust box, mopping not possible
                     new_mode = 0
-            elif box_type == 2:
-                # We only have water, so let's mop.
-                # (Vacuum will error out if we have no mop attachment)
-                new_mode = 2
-            elif box_type == 1:
-                # We only have dust box, mopping not possible
-                new_mode = 0
 
-            if new_mode is not None and new_mode != current_mode:
-                self._vacuum.raw_command('set_mop', [new_mode])
-                self.update()
+                if new_mode is not None and new_mode != current_mode:
+                    self._vacuum.raw_command('set_mop', [new_mode])
+                    self.update()
         except OSError as exc:
             _LOGGER.error("Got OSError while fetching the state: %s", exc)
+            self._available = False
         except DeviceException as exc:
             _LOGGER.warning("Got exception while fetching the state: %s", exc)
+            self._available = False
 
     async def async_clean_zone(self, zone, repeats=1):
         """Clean selected area for the number of repeats indicated."""
@@ -549,4 +554,5 @@ class MiroboVacuum2(StateVacuumEntity):
         self._last_clean_point = point
         await self._try_command("Unable to clean point: %s", self._vacuum.raw_command, 'set_uploadmap', [0]) \
             and await self._try_command("Unable to clean point: %s", self._vacuum.raw_command, 'set_pointclean', [1, x, y])
+
 
