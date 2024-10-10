@@ -3,7 +3,7 @@
   "name": "Viomi SE",
   "codeowners": ["@nqkdev", "@KrzysztofHajdamowicz", "@DominikWrobel"],
   "config_flow": true,
-  "dependencies": [],
+  "dependencies": ["sensor"],
   "documentation": "https://github.com/DominikWrobel/viomise",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/DominikWrobel/viomise/issues",
@@ -11,5 +11,5 @@
     "construct==2.10.70",
     "python-miio==0.5.12"
   ],
-  "version": "1.3"
+  "version": "1.4"
 }
