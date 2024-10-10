@@ -183,17 +183,6 @@ VACUUM_CARD_PROPS_REFERENCES = {
 }
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
-    """Set up the Xiaomi vacuum platform."""
-    host = config_entry.data[CONF_HOST]
-    token = config_entry.data[CONF_TOKEN]
-    name = config_entry.data[CONF_NAME]
-
-    vacuum = ViomiVacuum(host, token)
-    mirobo = MiroboVacuum2(name, vacuum)
-    
-    async_add_entities([mirobo], update_before_add=True)
-
-async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up the Xiaomi vacuum platform from config entry."""
     host = config_entry.data[CONF_HOST]
     token = config_entry.data[CONF_TOKEN]
@@ -204,6 +193,7 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     
     hass.data.setdefault(DATA_KEY, {})
     hass.data[DATA_KEY][host] = mirobo
+    hass.data[DOMAIN][config_entry.entry_id] = mirobo
 
     async_add_entities([mirobo], update_before_add=True)
 
