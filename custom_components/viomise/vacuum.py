@@ -154,7 +154,7 @@ ALL_PROPS = [
     "run_state",
     "mode",
     "err_state",
-    "battary_life",
+    "battery_life",
     "box_type",
     "mop_type",
     "s_time",
