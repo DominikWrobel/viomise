@@ -1,6 +1,6 @@
 ## Home Assistant integration for Viomi SE and Xiaomi STY02YM, STYJ02YM vacuums
 
-![logo](https://github.com/user-attachments/assets/398cdf45-c36b-4cf2-b458-af00832aa092)
+![logo](https://github.com/user-attachments/assets/bb740b2e-ebf4-45c4-8444-e6b34ef13a0d)
 
 _Original code by [@nqkdev](https://github.com/nqkdev/home-assistant-vacuum-styj02ym) and [@KrzysztofHajdamowicz](https://github.com/KrzysztofHajdamowicz/home-assistant-vacuum-styj02ym) then I forked it and added HACS support, unique_id and fixed some deprevation notices._  
 _I will try, with your help, to have this integration working as long as I can._
