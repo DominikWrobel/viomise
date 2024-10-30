@@ -21,7 +21,7 @@ Note: Vacuum token can be extracted by following [this guide](https://www.home-a
 
 With the great [Xiaomi Cloud Map Extractor](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor) and [Lovelace Vacuum Map card](https://github.com/PiotrMachowski/lovelace-xiaomi-vacuum-map-card?tab=readme-ov-file#lovelace-vacuum-map-card) you can make a great card for your vacuum:
 
-![mapa](https://github.com/user-attachments/assets/baffebc6-e6fb-490b-9482-1064e897b182)
+![mapa](https://github.com/user-attachments/assets/3125fc05-3a26-4988-93bb-7720e7ec95b3)
 
 #### Works with
 
