@@ -1,4 +1,3 @@
-"""Battery sensor for Xiaomi vacuum."""
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -9,7 +8,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
-
 from .const import DOMAIN
 
 async def async_setup_entry(
@@ -44,4 +42,47 @@ class XiaomiVacuumBatterySensor(SensorEntity):
     @property
     def native_value(self):
         """Return the state of the sensor."""
-        return self._vacuum.battery_level
+        return self._vacuum.battery_level if self._vacuum.battery_level is not None else None
+
+    @property
+    def extra_state_attributes(self):
+        """Return the state attributes of the sensor."""
+        attributes = {}
+        if hasattr(self._vacuum, 'vacuum_state') and isinstance(self._vacuum.vacuum_state, dict):
+            # Convert the is_charge value to a boolean (0 means charging, 1 means not charging)
+            is_charge_value = self._vacuum.vacuum_state.get('is_charge')
+            if is_charge_value is not None:
+                attributes['is_charging'] = is_charge_value == 0
+        return attributes
+
+    @property
+    def icon(self):
+        """Return the icon of the sensor."""
+        charging = self.extra_state_attributes.get('is_charging', True)
+        battery_level = self.native_value
+
+        if battery_level is None:
+            return 'mdi:battery-unknown'
+        
+        if charging:
+            if battery_level >= 90:
+                return 'mdi:battery-charging-100'
+            elif battery_level >= 60:
+                return 'mdi:battery-charging-70'
+            elif battery_level >= 40:
+                return 'mdi:battery-charging-50'
+            elif battery_level >= 20:
+                return 'mdi:battery-charging-30'
+            else:
+                return 'mdi:battery-charging-10'
+        else:
+            if battery_level >= 90:
+                return 'mdi:battery'
+            elif battery_level >= 60:
+                return 'mdi:battery-70'
+            elif battery_level >= 40:
+                return 'mdi:battery-50'
+            elif battery_level >= 20:
+                return 'mdi:battery-30'
+            else:
+                return 'mdi:battery-10'
