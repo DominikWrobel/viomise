@@ -65,7 +65,9 @@ class XiaomiVacuumBatterySensor(SensorEntity):
             return 'mdi:battery-unknown'
         
         if charging:
-            if battery_level >= 90:
+            if battery_level >= 99:
+                return 'mdi:battery-charging'
+            elif battery_level >= 90:
                 return 'mdi:battery-charging-100'
             elif battery_level >= 60:
                 return 'mdi:battery-charging-70'
