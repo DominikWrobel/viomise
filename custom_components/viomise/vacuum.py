@@ -154,7 +154,7 @@ ALL_PROPS = [
     "run_state",
     "mode",
     "err_state",
-    "battary_life",
+    "battary_life",  # Keep the misspelled property name for device communication
     "box_type",
     "mop_type",
     "s_time",
@@ -165,6 +165,15 @@ ALL_PROPS = [
     "has_map",
     "is_mop",
     "has_newmap",
+    "side_brush_life",
+    "side_brush_hours",
+    "main_brush_life",
+    "main_brush_hours",
+    "hypa_life",
+    "hypa_hours",
+    "mop_life",
+    "mop_hours",
+    "water_percent",
     "hw_info",
     "sw_info",
     "start_time",
@@ -174,12 +183,20 @@ ALL_PROPS = [
     "repeat_state",
     "light_state",
     "is_charge",
-    "is_work"
+    "is_work",
+    "cur_mapid",
+    "mop_route",
+    "map_num"
 ]
 
 VACUUM_CARD_PROPS_REFERENCES = {
+    'main_brush_left': 'main_brush_hours',
+    'side_brush_left': 'side_brush_hours',
+    'filter_left': 'hypa_hours',
+    'sensor_dirty_left': 'mop_hours',
     'cleaned_area': 's_area',
-    'cleaning_time': 's_time'
+    'cleaning_time': 's_time',
+    'battery': 'battary_life'  # Add mapping from correct name to misspelled property
 }
 
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -296,7 +313,7 @@ class MiroboVacuum2(StateVacuumEntity):
     def battery_level(self):
         """Return the battery level of the vacuum cleaner."""
         if self.vacuum_state is not None:
-            return self.vacuum_state['battary_life']
+            return self.vacuum_state['battary_life']  # Keep using misspelled property for device value
 
     @property
     def fan_speed(self):
@@ -319,7 +336,14 @@ class MiroboVacuum2(StateVacuumEntity):
         """Return the specific state attributes of this vacuum cleaner."""
         attrs = {}
         if self.vacuum_state is not None:
-            attrs.update(self.vacuum_state)
+            # Create a copy of the state dictionary to avoid modifying the original
+            state_copy = dict(self.vacuum_state)
+            
+            # Add the proper "battery" attribute while preserving the original "battary_life"
+            if 'battary_life' in state_copy:
+                state_copy['battery'] = state_copy['battary_life']
+            
+            attrs.update(state_copy)
             try:
                 attrs['status'] = STATE_CODE_TO_STATE[int(
                     self.vacuum_state['run_state'])]
@@ -539,5 +563,3 @@ class MiroboVacuum2(StateVacuumEntity):
         self._last_clean_point = point
         await self._try_command("Unable to clean point: %s", self._vacuum.raw_command, 'set_uploadmap', [0]) \
             and await self._try_command("Unable to clean point: %s", self._vacuum.raw_command, 'set_pointclean', [1, x, y])
-
-
