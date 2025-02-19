@@ -7,12 +7,7 @@ from miio import ViomiVacuum, DeviceException # pylint: disable=import-error
 import voluptuous as vol
 
 from homeassistant.components.vacuum import (
-    STATE_CLEANING,
-    STATE_DOCKED,
-    STATE_ERROR,
-    STATE_IDLE,
-    STATE_PAUSED,
-    STATE_RETURNING,
+    VacuumActivity,
     StateVacuumEntity,
     VacuumEntityFeature,
     DOMAIN as VACUUM_DOMAIN,
@@ -140,14 +135,14 @@ SUPPORT_XIAOMI = (
 
 
 STATE_CODE_TO_STATE = {
-    0: STATE_IDLE,
-    1: STATE_IDLE,
-    2: STATE_PAUSED,
-    3: STATE_CLEANING,
-    4: STATE_RETURNING,
-    5: STATE_DOCKED,
-    6: STATE_CLEANING,  # Vacuum & Mop
-    7: STATE_CLEANING   # Mop only
+    0: VacuumActivity.IDLE,
+    1: VacuumActivity.IDLE,
+    2: VacuumActivity.PAUSED,
+    3: VacuumActivity.CLEANING,  # Changed from STATE_CLEANING
+    4: VacuumActivity.RETURNING,
+    5: VacuumActivity.DOCKED,
+    6: VacuumActivity.CLEANING,  # Changed from STATE_CLEANING
+    7: VacuumActivity.CLEANING   # Changed from STATE_CLEANING
 }
 
 ALL_PROPS = [
@@ -294,12 +289,9 @@ class MiroboVacuum2(StateVacuumEntity):
         return self._name
 
     @property
-    def state(self):
-        """Return the status of the vacuum cleaner."""
+    def activity(self):
+        """Return the current vacuum activity as a VacuumActivity enum."""
         if self.vacuum_state is not None:
-            # The vacuum reverts back to an idle state after erroring out.
-            # We want to keep returning an error until it has been cleared.
-
             try:
                 return STATE_CODE_TO_STATE[int(self.vacuum_state['run_state'])]
             except KeyError:
@@ -308,6 +300,21 @@ class MiroboVacuum2(StateVacuumEntity):
                     self.vacuum_state['run_state'],
                 )
                 return None
+        return None
+
+#    @property
+#    def state(self):
+#        """Return the status of the vacuum cleaner (for backward compatibility)."""
+#        if self.vacuum_state is not None:
+#            try:
+#                return STATE_CODE_TO_STATE[int(self.vacuum_state['run_state'])]
+#            except KeyError:
+#                _LOGGER.error(
+#                    "STATE not supported, state_code: %s",
+#                    self.vacuum_state['run_state'],
+#                )
+#                return None
+#        return None
 
     @property
     def battery_level(self):
