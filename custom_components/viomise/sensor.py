@@ -4,7 +4,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import PERCENTAGE
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
@@ -23,24 +23,39 @@ async def async_setup_entry(
         return
 
 class XiaomiVacuumBatterySensor(SensorEntity):
+    """Representation of a Xiaomi vacuum battery sensor."""
+
     _attr_device_class = SensorDeviceClass.BATTERY
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = PERCENTAGE
     _attr_entity_category = EntityCategory.DIAGNOSTIC
-    should_poll = True
+    _attr_should_poll = False  # We'll rely on the vacuum's updates
 
     def __init__(self, vacuum):
+        """Initialize the sensor."""
         self._vacuum = vacuum
         self._attr_unique_id = f"{vacuum.unique_id}_battery"
         self._attr_name = f"{vacuum.name} Battery"
         self._attr_device_info = vacuum.device_info
+        self._vacuum.register_callback(self.update_callback)
 
-    async def async_update(self):
-        await self.hass.async_add_executor_job(self._vacuum.update)
+    async def async_added_to_hass(self):
+        """When entity is added to hass."""
+        self.async_on_remove(
+            lambda: self._vacuum.remove_callback(self.update_callback)
+        )
+
+    @callback
+    def update_callback(self):
+        """Call when the vacuum updates its state."""
+        self.async_write_ha_state()
 
     @property
     def native_value(self):
-        return self._vacuum.vacuum_state.get('battary_life') if self._vacuum.vacuum_state else None
+        """Return the battery level of the vacuum cleaner."""
+        if hasattr(self._vacuum, 'vacuum_state') and self._vacuum.vacuum_state is not None:
+            return self._vacuum.vacuum_state.get('battary_life')  # Using the raw property name
+        return None
 
     @property
     def extra_state_attributes(self):
@@ -56,7 +71,7 @@ class XiaomiVacuumBatterySensor(SensorEntity):
     @property
     def icon(self):
         """Return the icon of the sensor."""
-        charging = self.extra_state_attributes.get('is_charging', True)
+        charging = self.extra_state_attributes.get('is_charging', False)
         battery_level = self.native_value
 
         if battery_level is None:
