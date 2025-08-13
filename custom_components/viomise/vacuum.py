@@ -263,10 +263,25 @@ class MiroboVacuum2(StateVacuumEntity):
         """Initialize the Xiaomi vacuum cleaner robot handler."""
         self._name = name
         self._vacuum = vacuum
-        self._unique_id = f"{vacuum.ip}-{vacuum.token}"  # Create unique ID from IP and token
+        self._unique_id = f"{vacuum.ip}-{vacuum.token}"
         self._last_clean_point = None
         self.vacuum_state = None
         self._available = False
+        self._callbacks = set()
+
+    def register_callback(self, callback):
+        """Register callback to be called when state changes."""
+        self._callbacks.add(callback)
+
+    def remove_callback(self, callback):
+        """Remove previously registered callback."""
+        self._callbacks.discard(callback)
+
+    async def async_update(self):
+        """Update the vacuum state and notify listeners."""
+        await self.hass.async_add_executor_job(self.update)
+        for callback in self._callbacks:
+            callback()
 
     @property
     def unique_id(self) -> str:
